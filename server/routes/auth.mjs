@@ -86,11 +86,6 @@ router.post('/forgot-password', async (req, res) => {
       return res.status(400).json({ error: 'Email harus diisi' })
     }
 
-    const existing = await query('SELECT id FROM users WHERE email = $1', [email])
-    if (existing.rows.length === 0) {
-      return res.status(404).json({ error: 'Email tidak ditemukan' })
-    }
-
     await query('DELETE FROM reset_codes WHERE email = $1', [email])
 
     const code = generateCode()
