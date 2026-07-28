@@ -30,6 +30,7 @@ const prevLabel = {
 }
 
 export default function TaskCard({ task, onEdit, onDelete, onMove }) {
+  const isDone = task.status === 'done'
   const {
     attributes,
     listeners,
@@ -37,7 +38,7 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id })
+  } = useSortable({ id: task.id, disabled: isDone })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -63,9 +64,9 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`kanban-card border-l-4 ${statusColors[task.status]} ${isDragging ? 'shadow-xl' : ''} select-none`}
+      {...(isDone ? {} : attributes)}
+      {...(isDone ? {} : listeners)}
+      className={`kanban-card border-l-4 ${statusColors[task.status]} ${isDragging ? 'shadow-xl' : ''} ${isDone ? 'cursor-default' : ''} select-none`}
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { jsPDF } from 'jspdf'
-import 'jspdf-autotable'
+import AutoTable from 'jspdf-autotable'
 import { useStore, formatRupiah } from '../../lib/store'
 import ExpenseForm from './ExpenseForm'
 import { CategoryPie, SemesterComparison } from './ExpenseChart'
@@ -60,7 +60,7 @@ export default function ExpenseList() {
       formatRupiah(exp.amount),
     ])
 
-    doc.autoTable({
+    AutoTable(doc, {
       startY: 40,
       head: [['No', 'Nama', 'Kategori', 'Tanggal', 'Nominal']],
       body: rows,

@@ -46,6 +46,14 @@ export async function getDb() {
     )
   `)
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS reset_codes (
+      email TEXT NOT NULL,
+      code TEXT NOT NULL,
+      expires_at TIMESTAMP NOT NULL
+    )
+  `)
+
   return pool
 }
 

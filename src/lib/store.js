@@ -76,12 +76,26 @@ export const useStore = create((set, get) => ({
   },
 
   moveTask: async (id, status) => {
+    const prev = get().tasks
+    const task = prev.find((t) => t.id === id)
+    if (!task) return
     set((s) => ({
       tasks: s.tasks.map((t) =>
         t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
       ),
     }))
-    await api.updateTask(id, { status })
+    try {
+      await api.updateTask(id, {
+        title: task.title,
+        courseName: task.courseName,
+        lecturerName: task.lecturerName,
+        status,
+        deadline: task.deadline,
+        description: task.description,
+      })
+    } catch {
+      set({ tasks: prev })
+    }
   },
 
   // --- EXPENSES ---

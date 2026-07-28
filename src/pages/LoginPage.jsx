@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const justRegistered = location.state?.registered;
+  const resetSuccess = location.state?.resetSuccess;
 
   if (loading) {
     return (
@@ -54,6 +55,11 @@ export default function LoginPage() {
               Akun berhasil dibuat. Silakan masuk dengan akun kamu.
             </div>
           )}
+          {resetSuccess && (
+            <div className="p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-700">
+              Password berhasil direset. Silakan masuk dengan password baru.
+            </div>
+          )}
           {error && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
               {error}
@@ -83,6 +89,11 @@ export default function LoginPage() {
               placeholder="••••••••"
               required
             />
+            <div className="text-right mt-1">
+              <Link to="/forgot-password" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+                Lupa Password?
+              </Link>
+            </div>
           </div>
 
           <button

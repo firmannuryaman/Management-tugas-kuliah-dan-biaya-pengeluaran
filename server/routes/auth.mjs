@@ -75,6 +75,69 @@ router.post('/login', async (req, res) => {
   }
 })
 
+function generateCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString()
+}
+
+router.post('/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body
+    if (!email) {
+      return res.status(400).json({ error: 'Email harus diisi' })
+    }
+
+    const existing = await query('SELECT id FROM users WHERE email = $1', [email])
+    if (existing.rows.length === 0) {
+      return res.status(404).json({ error: 'Email tidak ditemukan' })
+    }
+
+    await query('DELETE FROM reset_codes WHERE email = $1', [email])
+
+    const code = generateCode()
+    await query(
+      'INSERT INTO reset_codes (email, code, expires_at) VALUES ($1, $2, NOW() + INTERVAL \'15 minutes\')',
+      [email, code]
+    )
+
+    res.json({ message: 'Kode reset berhasil dikirim', code })
+  } catch (err) {
+    console.error('Forgot password error:', err)
+    return res.status(500).json({ error: 'Server error' })
+  }
+})
+
+router.post('/reset-password', async (req, res) => {
+  try {
+    const { email, code, password } = req.body
+
+    if (!email || !code || !password) {
+      return res.status(400).json({ error: 'Semua field harus diisi' })
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password minimal 6 karakter' })
+    }
+
+    const result = await query(
+      'SELECT * FROM reset_codes WHERE email = $1 AND code = $2 AND expires_at > NOW()',
+      [email, code]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: 'Kode tidak valid atau sudah kadaluarsa' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+    await query('UPDATE users SET password = $1 WHERE email = $2', [hashedPassword, email])
+    await query('DELETE FROM reset_codes WHERE email = $1', [email])
+
+    res.json({ message: 'Password berhasil direset' })
+  } catch (err) {
+    console.error('Reset password error:', err)
+    return res.status(500).json({ error: 'Server error' })
+  }
+})
+
 router.get('/me', async (req, res) => {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {

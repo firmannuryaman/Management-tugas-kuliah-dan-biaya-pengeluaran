@@ -42,6 +42,18 @@ export const api = {
       body: JSON.stringify({ name, email, password }),
     }),
 
+  forgotPassword: (email) =>
+    request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (email, code, password) =>
+    request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password }),
+    }),
+
   getMe: () => request('/auth/me'),
 
   getTasks: () => request('/tasks'),
