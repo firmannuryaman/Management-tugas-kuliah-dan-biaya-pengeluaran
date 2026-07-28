@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
+import { jsPDF } from 'jspdf'
+import 'jspdf-autotable'
 import { useStore, formatRupiah } from '../../lib/store'
 import ExpenseForm from './ExpenseForm'
 import { CategoryPie, SemesterComparison } from './ExpenseChart'
 import Modal from '../ui/Modal'
 import EmptyState from '../ui/EmptyState'
-import { Plus, Pencil, Trash2, Wallet, Filter } from 'lucide-react'
+import { Plus, Pencil, Trash2, Wallet, FileDown } from 'lucide-react'
 
 export default function ExpenseList() {
   const filteredExpenses = useStore((s) => s.getFilteredExpenses())
@@ -35,6 +37,49 @@ export default function ExpenseList() {
     }
   }
 
+  const exportPDF = useCallback(() => {
+    const doc = new jsPDF()
+    const date = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric', month: 'long', year: 'numeric',
+    })
+
+    doc.setFontSize(16)
+    doc.text('Laporan Biaya Kuliah', 14, 20)
+    doc.setFontSize(11)
+    doc.text(`Semester: ${activeSemester}`, 14, 28)
+    doc.setFontSize(9)
+    doc.text(`Dicetak: ${date}`, 14, 34)
+
+    const rows = filteredExpenses.map((exp, i) => [
+      i + 1,
+      exp.title,
+      exp.category,
+      new Date(exp.expenseDate).toLocaleDateString('id-ID', {
+        day: 'numeric', month: 'short', year: 'numeric',
+      }),
+      formatRupiah(exp.amount),
+    ])
+
+    doc.autoTable({
+      startY: 40,
+      head: [['No', 'Nama', 'Kategori', 'Tanggal', 'Nominal']],
+      body: rows,
+      foot: [['', '', '', 'Total', formatRupiah(total)]],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [79, 70, 229] },
+      footStyles: { fillColor: [243, 244, 246], textColor: [79, 70, 229], fontStyle: 'bold' },
+      columnStyles: {
+        0: { cellWidth: 10, halign: 'center' },
+        1: { cellWidth: 55 },
+        2: { cellWidth: 30 },
+        3: { cellWidth: 40 },
+        4: { cellWidth: 40, halign: 'right' },
+      },
+    })
+
+    doc.save(`laporan-biaya-${activeSemester.replace(/\s+/g, '-')}.pdf`)
+  }, [filteredExpenses, activeSemester, total])
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
@@ -57,10 +102,16 @@ export default function ExpenseList() {
             </span>
           </div>
         </div>
-        <button onClick={openAdd} className="btn-primary w-full sm:w-auto justify-center">
-          <Plus size={16} />
-          Tambah Pengeluaran
-        </button>
+        <div className="flex items-stretch sm:items-center gap-2">
+          <button onClick={exportPDF} className="btn-secondary w-full sm:w-auto justify-center">
+            <FileDown size={16} />
+            <span className="hidden sm:inline">Export PDF</span>
+          </button>
+          <button onClick={openAdd} className="btn-primary w-full sm:w-auto justify-center">
+            <Plus size={16} />
+            Tambah Pengeluaran
+          </button>
+        </div>
       </div>
 
       <div className="sm:hidden mb-4">
