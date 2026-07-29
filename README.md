@@ -66,5 +66,5 @@ Clone repository:
 git clone https://github.com/firmannuryaman/Management-tugas-kuliah-dan-biaya-pengeluaran.git
 cd nama-repository
 
-## Tujuan Project
+## **Tujuan Project**
 Project ini dikembangkan untuk membantu mahasiswa mengelola tugas akademik dan mencatat pengeluaran biaya kuliah dengan cara yang lebih rapi, praktis, dan mudah dipantau.
