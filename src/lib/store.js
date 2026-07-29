@@ -24,7 +24,7 @@ export const useStore = create((set, get) => ({
   tasks: [],
   expenses: [],
   semesters: [],
-  activeSemester: '',
+  activeSemester: '__all__',
   toasts: [],
   loaded: false,
 
@@ -32,11 +32,15 @@ export const useStore = create((set, get) => ({
     try {
       const [tasks, expenses] = await Promise.all([api.getTasks(), api.getExpenses()])
       const semesters = [...new Set(expenses.map((e) => e.semester).filter(Boolean))].sort()
+      const current = get().activeSemester
+      const activeSemester = current === '__all__' || !semesters.includes(current)
+        ? '__all__'
+        : current
       set({
         tasks,
         expenses,
         semesters: semesters.length > 0 ? semesters : ['Semester 1 - 2025/2026'],
-        activeSemester: semesters[0] || 'Semester 1 - 2025/2026',
+        activeSemester,
         loaded: true,
       })
     } catch {
@@ -132,10 +136,12 @@ export const useStore = create((set, get) => ({
   // --- COMPUTED ---
   getFilteredExpenses: () => {
     const { expenses, activeSemester } = get()
+    if (activeSemester === '__all__') return expenses
     return expenses.filter((e) => e.semester === activeSemester)
   },
 
   getExpensesBySemester: (semester) => {
+    if (semester === '__all__') return get().expenses
     return get().expenses.filter((e) => e.semester === semester)
   },
 

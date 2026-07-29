@@ -8,10 +8,7 @@ import Modal from '../ui/Modal'
 import EmptyState from '../ui/EmptyState'
 import { Plus, Pencil, Trash2, Wallet, FileDown } from 'lucide-react'
 
-const ALL_KEY = '__all__'
-
 export default function ExpenseList() {
-  const allExpenses = useStore((s) => s.expenses)
   const filteredExpenses = useStore((s) => s.getFilteredExpenses())
   const activeSemester = useStore((s) => s.activeSemester)
   const semesters = useStore((s) => s.semesters)
@@ -24,13 +21,10 @@ export default function ExpenseList() {
   const [page, setPage] = useState(1)
   const PER_PAGE = 15
 
-  const isAll = activeSemester === ALL_KEY
-  const displayExpenses = isAll ? allExpenses : filteredExpenses
-  const total = isAll
-    ? allExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0)
-    : getTotalExpenses(activeSemester)
-  const totalPages = Math.ceil(displayExpenses.length / PER_PAGE)
-  const pageExpenses = displayExpenses.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const isAll = activeSemester === '__all__'
+  const total = getTotalExpenses(activeSemester)
+  const totalPages = Math.ceil(filteredExpenses.length / PER_PAGE)
+  const pageExpenses = filteredExpenses.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const semesterLabel = isAll ? 'Semua Semester' : activeSemester
 
   function handleSemesterChange(semester) {
@@ -67,7 +61,7 @@ export default function ExpenseList() {
     doc.setFontSize(9)
     doc.text(`Dicetak: ${date}`, 14, 34)
 
-    const rows = displayExpenses.map((exp, i) => [
+    const rows = filteredExpenses.map((exp, i) => [
       i + 1,
       exp.title,
       exp.category,
@@ -95,7 +89,7 @@ export default function ExpenseList() {
     })
 
     doc.save(`laporan-biaya-${semesterLabel.replace(/\s+/g, '-')}.pdf`)
-  }, [displayExpenses, semesterLabel, total])
+  }, [filteredExpenses, semesterLabel, total])
 
   return (
     <div>
@@ -106,7 +100,7 @@ export default function ExpenseList() {
             onChange={(e) => handleSemesterChange(e.target.value)}
             className="input w-full sm:w-auto font-medium"
           >
-            <option value={ALL_KEY}>Semua Semester</option>
+            <option value="__all__">Semua Semester</option>
             {semesters.map((s) => (
               <option key={s} value={s}>
                 {s}
@@ -135,7 +129,7 @@ export default function ExpenseList() {
       <div className="sm:hidden mb-4">
         <div className="flex items-center gap-2 px-4 py-3 bg-primary-50 rounded-xl">
           <Wallet size={18} className="text-primary-600" />
-          <span className="text-sm text-primary-700">Total {isAll ? 'semua' : 'semester ini'}:</span>
+          <span className="text-sm text-primary-700">Total {isAll ? 'semua semester' : 'semester ini'}:</span>
           <span className="text-sm font-bold text-primary-700">
             {formatRupiah(total)}
           </span>
