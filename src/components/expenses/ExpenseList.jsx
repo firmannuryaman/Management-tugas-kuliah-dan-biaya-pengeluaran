@@ -18,8 +18,17 @@ export default function ExpenseList() {
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editExpense, setEditExpense] = useState(null)
+  const [page, setPage] = useState(1)
+  const PER_PAGE = 15
 
   const total = getTotalExpenses(activeSemester)
+  const totalPages = Math.ceil(filteredExpenses.length / PER_PAGE)
+  const pageExpenses = filteredExpenses.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+
+  function handleSemesterChange(semester) {
+    setActiveSemester(semester)
+    setPage(1)
+  }
 
   const openAdd = () => {
     setEditExpense(null)
@@ -86,7 +95,7 @@ export default function ExpenseList() {
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <select
             value={activeSemester}
-            onChange={(e) => setActiveSemester(e.target.value)}
+            onChange={(e) => handleSemesterChange(e.target.value)}
             className="input w-full sm:w-auto font-medium"
           >
             {semesters.map((s) => (
@@ -153,68 +162,91 @@ export default function ExpenseList() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredExpenses.map((exp) => (
-                    <tr
-                      key={exp.id}
-                      className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <div className="font-medium text-gray-800">{exp.title}</div>
-                        {exp.note && (
-                          <div className="text-xs text-gray-400 mt-0.5">{exp.note}</div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="inline-block px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
-                          {exp.category}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {new Date(exp.expenseDate).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-gray-800">
-                        {formatRupiah(exp.amount)}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-1">
-                          <button
-                            onClick={() => openEdit(exp)}
-                            className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-                          >
-                            <Pencil size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(exp)}
-                            className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-gray-50 font-semibold">
-                    <td colSpan={3} className="px-4 py-3 text-gray-600">
-                      Total
+                {pageExpenses.map((exp) => (
+                  <tr
+                    key={exp.id}
+                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-gray-800">{exp.title}</div>
+                      {exp.note && (
+                        <div className="text-xs text-gray-400 mt-0.5">{exp.note}</div>
+                      )}
                     </td>
-                    <td className="px-4 py-3 text-right text-primary-700">
-                      {formatRupiah(total)}
+                    <td className="px-4 py-3">
+                      <span className="inline-block px-2 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+                        {exp.category}
+                      </span>
                     </td>
-                    <td></td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {new Date(exp.expenseDate).toLocaleDateString('id-ID', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-800">
+                      {formatRupiah(exp.amount)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => openEdit(exp)}
+                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(exp)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </tfoot>
-              </table>
-            </div>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="bg-gray-50 font-semibold">
+                  <td colSpan={3} className="px-4 py-3 text-gray-600">
+                    Total
+                  </td>
+                  <td className="px-4 py-3 text-right text-primary-700">
+                    {formatRupiah(total)}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
+              <span className="text-xs text-gray-400">
+                {filteredExpenses.length} data &mdash; hal {page}/{totalPages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
-          <div className="sm:hidden space-y-3 mb-6">
-            {filteredExpenses.map((exp) => (
+        <div className="sm:hidden space-y-3 mb-6">
+          {pageExpenses.map((exp) => (
               <div key={exp.id} className="card p-4">
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex-1 min-w-0">
@@ -256,6 +288,29 @@ export default function ExpenseList() {
               </div>
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-gray-400">
+                {filteredExpenses.length} data &mdash; hal {page}/{totalPages}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  Sebelumnya
+                </button>
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1 rounded text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
 
