@@ -41,6 +41,7 @@ export default function ExpenseForm({ editExpense, onClose }) {
   )
 
   const [customCategory, setCustomCategory] = useState('')
+  const [newSemester, setNewSemester] = useState('')
 
   function handleChange(e) {
     const { name, value } = e.target
@@ -54,9 +55,13 @@ export default function ExpenseForm({ editExpense, onClose }) {
     const category = form.category === '__custom__' ? customCategory : form.category
     if (!category.trim()) return
 
+    const semester = form.semester === '__new__' ? newSemester : form.semester
+    if (!semester.trim()) return
+
     const data = {
       ...form,
       category: category.trim(),
+      semester: semester.trim(),
       amount: Number(form.amount),
     }
 
@@ -159,13 +164,8 @@ export default function ExpenseForm({ editExpense, onClose }) {
           </select>
           {form.semester === '__new__' && (
             <input
-              name="semester"
-              value={
-                form.semester === '__new__' ? '' : form.semester
-              }
-              onChange={(e) =>
-                setForm((prev) => ({ ...prev, semester: e.target.value }))
-              }
+              value={newSemester}
+              onChange={(e) => setNewSemester(e.target.value)}
               className="input mt-2"
               placeholder="Semester 6 - 2026/2027"
               autoFocus
