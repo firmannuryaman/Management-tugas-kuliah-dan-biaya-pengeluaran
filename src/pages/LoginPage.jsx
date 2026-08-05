@@ -90,7 +90,10 @@ export default function LoginPage() {
               required
             />
             <div className="text-right mt-1">
-              <Link to="/forgot-password" className="text-xs text-primary-600 hover:text-primary-700 font-medium">
+              <Link
+                to="/forgot-password"
+                className="text-xs text-primary-600 hover:text-primary-700 font-medium"
+              >
                 Lupa Password?
               </Link>
             </div>
