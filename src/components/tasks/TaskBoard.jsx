@@ -141,7 +141,7 @@ export default function TaskBoard() {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 overflow-x-auto lg:overflow-x-visible">
+        <div className="flex lg:grid lg:grid-cols-4 gap-4 pb-4 overflow-x-auto lg:overflow-x-visible">
           {STATUSES.map((status) => (
             <TaskColumn
               key={status}
