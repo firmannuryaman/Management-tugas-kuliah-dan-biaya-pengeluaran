@@ -34,14 +34,20 @@ export default function TaskSummary() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 mb-4">
+      <div className="grid grid-cols-4 gap-2 mb-4">
         {stats.map((s) => (
           <div
             key={s.status}
-            className="text-center p-2 sm:p-3 rounded-xl bg-gray-50"
+            className={`text-center p-2 sm:p-3 rounded-xl ${
+              s.status === 'overdue' ? 'bg-red-50' : 'bg-gray-50'
+            }`}
           >
-            <div className="text-xl sm:text-2xl font-bold text-gray-800">{s.count}</div>
-            <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
+            <div className={`text-xl sm:text-2xl font-bold ${
+              s.status === 'overdue' ? 'text-red-600' : 'text-gray-800'
+            }`}>{s.count}</div>
+            <div className={`text-xs mt-0.5 ${
+              s.status === 'overdue' ? 'text-red-500' : 'text-gray-500'
+            }`}>{s.label}</div>
           </div>
         ))}
       </div>

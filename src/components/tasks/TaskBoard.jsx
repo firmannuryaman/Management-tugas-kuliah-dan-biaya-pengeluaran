@@ -61,6 +61,8 @@ export default function TaskBoard() {
     const overId = over.id
     const targetStatus = STATUSES.includes(overId) ? overId : activeTask.status
 
+    if (activeTask.status === 'overdue' && targetStatus === 'in_progress') return
+
     if (activeTask.status !== targetStatus) {
       moveTask(active.id, targetStatus)
     }

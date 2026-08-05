@@ -1,11 +1,12 @@
 import { create } from 'zustand'
 import { api } from './api'
 
-const STATUSES = ['todo', 'in_progress', 'done']
+const STATUSES = ['todo', 'in_progress', 'done', 'overdue']
 const STATUS_LABELS = {
   todo: 'Belum Dikerjakan',
   in_progress: 'Sedang Dikerjakan',
   done: 'Selesai',
+  overdue: 'Terlewat',
 }
 
 function formatRupiah(n) {
@@ -31,13 +32,39 @@ export const useStore = create((set, get) => ({
   loadData: async () => {
     try {
       const [tasks, expenses] = await Promise.all([api.getTasks(), api.getExpenses()])
+      const now = new Date()
+      now.setHours(0, 0, 0, 0)
+      const processed = tasks.map((t) => {
+        if (
+          t.status !== 'done' &&
+          t.status !== 'overdue' &&
+          t.deadline &&
+          new Date(t.deadline) < now
+        ) {
+          return { ...t, status: 'overdue' }
+        }
+        return t
+      })
+      const overdueTasks = processed.filter(
+        (t, i) => t.status === 'overdue' && tasks[i].status !== 'overdue'
+      )
+      overdueTasks.forEach((t) => {
+        api.updateTask(t.id, {
+          title: t.title,
+          courseName: t.courseName,
+          lecturerName: t.lecturerName,
+          status: 'overdue',
+          deadline: t.deadline,
+          description: t.description,
+        }).catch(() => {})
+      })
       const semesters = [...new Set(expenses.map((e) => e.semester).filter(Boolean))].sort()
       const current = get().activeSemester
       const activeSemester = current === '__all__' || !semesters.includes(current)
         ? '__all__'
         : current
       set({
-        tasks,
+        tasks: processed,
         expenses,
         semesters: semesters.length > 0 ? semesters : ['Semester 1 - 2025/2026'],
         activeSemester,
@@ -83,6 +110,7 @@ export const useStore = create((set, get) => ({
     const prev = get().tasks
     const task = prev.find((t) => t.id === id)
     if (!task) return
+    if (task.status === 'overdue' && status === 'in_progress') return
     set((s) => ({
       tasks: s.tasks.map((t) =>
         t.id === id ? { ...t, status, updatedAt: new Date().toISOString() } : t
@@ -168,13 +196,8 @@ export const useStore = create((set, get) => ({
   },
 
   getOverdueTasks: () => {
-    const now = new Date()
-    now.setHours(0, 0, 0, 0)
     return get()
-      .tasks.filter((t) => {
-        if (t.status === 'done' || !t.deadline) return false
-        return new Date(t.deadline) < now
-      })
+      .tasks.filter((t) => t.status === 'overdue')
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
   },
 

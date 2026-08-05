@@ -1,36 +1,41 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { Pencil, Trash2, Calendar, BookOpen, User, ArrowRight, ArrowLeft, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Pencil, Trash2, Calendar, BookOpen, User, ArrowRight, ArrowLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react'
 import { STATUSES, STATUS_LABELS } from '../../lib/store'
 
 const statusColors = {
   todo: 'border-l-yellow-400',
   in_progress: 'border-l-blue-400',
   done: 'border-l-green-400',
+  overdue: 'border-l-red-400',
 }
 
 const nextStatus = {
   todo: 'in_progress',
   in_progress: 'done',
+  overdue: 'done',
 }
 
 const prevStatus = {
   in_progress: 'todo',
   done: 'in_progress',
+  overdue: 'todo',
 }
 
 const nextLabel = {
   todo: 'Kerjakan',
   in_progress: 'Selesaikan',
+  overdue: 'Selesaikan',
 }
 
 const prevLabel = {
   in_progress: 'Kembali',
   done: 'Revisi',
+  overdue: 'Kembalikan',
 }
 
 export default function TaskCard({ task, onEdit, onDelete, onMove }) {
-  const isDone = task.status === 'done'
+  const isLocked = task.status === 'done' || task.status === 'overdue'
   const {
     attributes,
     listeners,
@@ -38,7 +43,7 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: task.id, disabled: isDone })
+  } = useSortable({ id: task.id, disabled: isLocked })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -46,10 +51,7 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  const isOverdue =
-    task.deadline &&
-    new Date(task.deadline) < new Date(new Date().toDateString()) &&
-    task.status !== 'done'
+  const isOverdue = task.status === 'overdue'
 
   const isNearDeadline =
     !isOverdue &&
@@ -64,9 +66,9 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...(isDone ? {} : attributes)}
-      {...(isDone ? {} : listeners)}
-      className={`kanban-card border-l-4 ${statusColors[task.status]} ${isDragging ? 'shadow-xl' : ''} ${isDone ? 'cursor-default' : ''} select-none`}
+      {...(isLocked ? {} : attributes)}
+      {...(isLocked ? {} : listeners)}
+      className={`kanban-card border-l-4 ${statusColors[task.status]} ${isDragging ? 'shadow-xl' : ''} ${isLocked ? 'cursor-default' : ''} ${isOverdue ? 'bg-red-50/50' : ''} select-none`}
     >
       <div className="flex items-start gap-2">
         <div className="flex-1 min-w-0">
@@ -135,7 +137,7 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
           )}
 
           <div className="mt-3 flex items-center gap-2 flex-wrap">
-            {canPrev && (
+            {canPrev && task.status !== 'overdue' && (
               <button
                 onClick={(e) => { e.stopPropagation(); onMove(task.id, prevStatus[task.status]) }}
                 className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
@@ -147,7 +149,11 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
             {canNext && (
               <button
                 onClick={(e) => { e.stopPropagation(); onMove(task.id, nextStatus[task.status]) }}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  task.status === 'overdue'
+                    ? 'bg-green-50 text-green-700 hover:bg-green-100'
+                    : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                }`}
               >
                 {nextLabel[task.status]}
                 <ArrowRight size={12} />
@@ -157,6 +163,12 @@ export default function TaskCard({ task, onEdit, onDelete, onMove }) {
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-green-50 text-green-700">
                 <CheckCircle2 size={12} />
                 Selesai
+              </span>
+            )}
+            {task.status === 'overdue' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium bg-red-50 text-red-700">
+                <AlertCircle size={12} />
+                Terlewat
               </span>
             )}
           </div>

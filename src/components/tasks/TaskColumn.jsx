@@ -8,6 +8,7 @@ const columnColors = {
   todo: { dot: 'bg-yellow-400', bg: 'bg-yellow-50' },
   in_progress: { dot: 'bg-blue-400', bg: 'bg-blue-50' },
   done: { dot: 'bg-green-400', bg: 'bg-green-50' },
+  overdue: { dot: 'bg-red-400', bg: 'bg-red-50' },
 }
 
 export default function TaskColumn({
